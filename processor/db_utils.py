@@ -30,6 +30,38 @@ def create_connection(host_name, user_name, user_password, db_name):
     
     return connection
 
+def create_simhash_table(connection, table_name, n=4):
+    """
+    Creates a table for storing SimHash fingerprints with n parts.
+
+    Parameters:
+    connection: A MySQL connection object.
+    table_name (str): The name of the table to create.
+    n (int): The number of fields to store the hash fingerprint parts (default is 4).
+
+    Returns:
+    None
+    """
+    cursor = connection.cursor()
+    
+    # Construct the SQL query to create a table with n fields
+    fields = ", ".join([f"part{i+1} BIGINT" for i in range(n)])
+    create_table_query = f"""
+    CREATE TABLE IF NOT EXISTS {table_name} (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        {fields}
+    );
+    """
+    
+    try:
+        cursor.execute(create_table_query)
+        connection.commit()
+        print(f"Table '{table_name}' created successfully with {n} parts.")
+    except Error as e:
+        print(f"The error '{e}' occurred while creating the table '{table_name}'")
+    finally:
+        cursor.close()
+
 def load_excel_to_mysql(file_path, table_name, connection):
     """
     Loads data from an Excel file into a MySQL table.

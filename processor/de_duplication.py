@@ -1,13 +1,13 @@
 import time
-from datetime import datetime
 import logging
 import jieba
 import re
 import hashlib
+
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-THRESHOLD = 0.8
+THRESHOLD = 0.7
 # tfidf or simhash
 # METHOD = 'simhash'
 METHOD = 'tfidf'
@@ -24,10 +24,32 @@ def chinese_tokenizer(tokens, caller=None):
     else:
         return ' '.join(tokens)
 
-def simhash(text):
-    words = jieba.lcut(text)
-    # words = chinese_tokenizer(text, caller='simhash')
+def simhash_128(text):
+    words = chinese_tokenizer(text, caller='simhash')
     hash_bits = 128
+    v = [0] * hash_bits
+    
+    for word in words:
+        hash_value = int(hashlib.md5(word.encode('utf-8')).hexdigest(), 16)
+        for i in range(hash_bits):
+            bitmask = 1 << i
+            if hash_value & bitmask:
+                v[i] += 1
+            else:
+                v[i] -= 1
+    
+    fingerprint = 0
+    for i in range(hash_bits):
+        if v[i] >= 0:
+            fingerprint |= 1 << i
+    
+    return fingerprint
+
+import hashlib
+
+def simhash_64(text):
+    words = chinese_tokenizer(text, caller='simhash')
+    hash_bits = 64
     v = [0] * hash_bits
     
     for word in words:
@@ -50,6 +72,11 @@ def hamming_distance_similarity(simhash1, simhash2):
     hamming_distance = bin(simhash1 ^ simhash2).count('1')
     similarity = 1 - hamming_distance / 128
     return similarity
+
+def split_simhash(simhash_value, parts=4):
+    """Split the simhash value into the specified number of parts."""
+    part_length = len(simhash_value) // parts
+    return [simhash_value[i * part_length:(i + 1) * part_length] for i in range(parts)]
 
 def find_similar_pairs(articles, column_name, threshold, method='tfidf'):
     ids = [article['id'] for article in articles]
@@ -74,7 +101,7 @@ def find_similar_pairs(articles, column_name, threshold, method='tfidf'):
                         'text2': articles[j][column_name]
                     })
     elif method == 'simhash':
-        simhash_values = [simhash(article[column_name]) for article in articles]
+        simhash_values = [simhash_128(article[column_name]) for article in articles]
         
         for i in range(len(ids)):
             for j in range(i + 1, len(ids)):
@@ -85,15 +112,32 @@ def find_similar_pairs(articles, column_name, threshold, method='tfidf'):
                         'text1': articles[i][column_name],
                         'text2': articles[j][column_name]
                     })
+    elif method == 'simhash_64':
+        simhash_values = [simhash_64(article[column_name]) for article in articles]
+        parts_dict = [{} for _ in range(4)]
+        
+        for i, simhash_value in enumerate(simhash_values):
+            parts = split_simhash(simhash_value)
+            for part_index, part in enumerate(parts):
+                if part in parts_dict[part_index]:
+                    for j in parts_dict[part_index][part]:
+                        if hamming_distance_similarity(simhash_values[i], simhash_values[j]) > threshold:
+                            similar_pairs.append({
+                                'id1': ids[i],
+                                'id2': ids[j],
+                                'text1': articles[i][column_name],
+                                'text2': articles[j][column_name]
+                            })
+                    parts_dict[part_index][part].append(i)
+                else:
+                    parts_dict[part_index][part] = [i]
     
     return similar_pairs
 
-def dd_TfidfVectorizer_cosine_similarity(connection, column_name):
+def dd_similarity(connection, column_name):
     start_time = time.time()
     deletion_time = None
     deleted_count = 0
-    
-    # current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     logging.basicConfig(
         filename=f'Similarity_log_.txt',
