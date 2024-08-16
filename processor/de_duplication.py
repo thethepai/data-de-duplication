@@ -76,14 +76,17 @@ def hamming_distance_similarity(simhash1, simhash2):
 
 def split_simhash(simhash_value, parts=4):
     """Split the simhash value into the specified number of parts."""
-    part_length = len(simhash_value) // parts
-    return [simhash_value[i * part_length:(i + 1) * part_length] for i in range(parts)]
+    binary_simhash = bin(simhash_value)[2:].zfill(64)
+    
+    part_length = len(binary_simhash) // parts
+    return [binary_simhash[i * part_length:(i + 1) * part_length] for i in range(parts)]
 
-def find_similar_pairs(articles, column_name, threshold, method='tfidf', sub_string = False):
+def find_similar_pairs(articles, column_name, threshold, method='tfidf', sub_string = True):
     ids = [article['id'] for article in articles]
     
     similar_pairs = []
     
+    # TODO: repeate
     if sub_string:
         for i in range(len(ids)):
             for j in range(i + 1, len(ids)):
@@ -94,6 +97,7 @@ def find_similar_pairs(articles, column_name, threshold, method='tfidf', sub_str
                         'text1': articles[i][column_name],
                         'text2': articles[j][column_name]
                     })
+        print(f"Found {len(similar_pairs)} similar records by substring.")
     
     if method == 'tfidf':
         texts = [chinese_tokenizer(article[column_name]) for article in articles]
@@ -157,40 +161,40 @@ def dd_similarity(connection, column_name):
         encoding='utf-8'
     )
 
-    try:
-        with connection.cursor() as cursor:
-            # set cursor to return dictionary
-            cursor = connection.cursor(dictionary=True)
-            
-            select_query = f"SELECT id, {column_name} FROM articles_info"
-            cursor.execute(select_query)
-            articles = cursor.fetchall()
+    # try:
+    with connection.cursor() as cursor:
+        # set cursor to return dictionary
+        cursor = connection.cursor(dictionary=True)
         
-            similar_pairs = find_similar_pairs(articles, column_name, THRESHOLD, method = METHOD)
-            
-            logging.info(f"Found {len(similar_pairs)} similar records.")
-            
-            record = 1
-            for pair in similar_pairs:
-                logging.info(f"pair NO.{record}")
-                logging.info(f"Similarity: {pair['id1']} and {pair['id2']}")
-                logging.info(f"Text 1: {pair['text1']}")
-                logging.info(f"Text 2: {pair['text2']}")
-                logging.info("------")
-                record += 1
-            
-            # delete similar records
-            for pair in similar_pairs:
-                delete_query = f"DELETE FROM articles_info WHERE id = {pair['id2']}"
-                cursor.execute(delete_query)
-                deleted_count += cursor.rowcount
-            
-            deletion_time = time.time() - start_time
-            
-        connection.commit()
-    except Exception as e:
-        print(f"Error: {e}")
-        connection.rollback()
+        select_query = f"SELECT id, {column_name} FROM articles_info"
+        cursor.execute(select_query)
+        articles = cursor.fetchall()
+    
+        similar_pairs = find_similar_pairs(articles, column_name, THRESHOLD, method = METHOD)
+        
+        logging.info(f"Found {len(similar_pairs)} similar records.")
+        
+        record = 1
+        for pair in similar_pairs:
+            logging.info(f"pair NO.{record}")
+            logging.info(f"Similarity: {pair['id1']} and {pair['id2']}")
+            logging.info(f"Text 1: {pair['text1']}")
+            logging.info(f"Text 2: {pair['text2']}")
+            logging.info("------")
+            record += 1
+        
+        # delete similar records
+        for pair in similar_pairs:
+            delete_query = f"DELETE FROM articles_info WHERE id = {pair['id2']}"
+            cursor.execute(delete_query)
+            deleted_count += cursor.rowcount
+        
+        deletion_time = time.time() - start_time
+        
+    connection.commit()
+    # except Exception as e:
+    #     print(f"Error: {e}")
+    #     connection.rollback()
     
     end_time = time.time()
     total_time = end_time - start_time
