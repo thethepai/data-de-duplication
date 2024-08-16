@@ -3,8 +3,10 @@ import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-def chinese_tokenizer(text):
-    return jieba.lcut(text)
+def chinese_tokenizer(tokens):
+    tokens = jieba.lcut(tokens)
+    tokens = [re.sub(r'[^\w\s]', '', token) for token in tokens]
+    return tokens
 
 text1 = "比特币失手5万美元大关"
 text2 = "比特币失手51000美元/枚，日内跌幅12.42%。"
