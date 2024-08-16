@@ -10,7 +10,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 THRESHOLD = 0.7
 # tfidf or simhash
 # METHOD = 'simhash'
-METHOD = 'tfidf'
+METHOD = 'simhash_64'
+# METHOD = 'tfidf'
 stopwords = {'的', '了', '和', '是', '在', '就', '不', '有', '也', '都', '上', '你', '我'}
     
 def chinese_tokenizer(tokens, caller=None):
@@ -121,13 +122,12 @@ def find_similar_pairs(articles, column_name, threshold, method='tfidf'):
             for part_index, part in enumerate(parts):
                 if part in parts_dict[part_index]:
                     for j in parts_dict[part_index][part]:
-                        if hamming_distance_similarity(simhash_values[i], simhash_values[j]) > threshold:
-                            similar_pairs.append({
-                                'id1': ids[i],
-                                'id2': ids[j],
-                                'text1': articles[i][column_name],
-                                'text2': articles[j][column_name]
-                            })
+                        similar_pairs.append({
+                            'id1': ids[i],
+                            'id2': ids[j],
+                            'text1': articles[i][column_name],
+                            'text2': articles[j][column_name]
+                        })
                     parts_dict[part_index][part].append(i)
                 else:
                     parts_dict[part_index][part] = [i]

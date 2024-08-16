@@ -7658,3 +7658,7 @@
 2024-08-16 15:20:40,788 - INFO - Text 1: 英特尔证实其位于美国俄勒冈州的制造工厂正在导入第二台高数值孔径极紫外(High-NA EUV)光刻机
 2024-08-16 15:20:40,788 - INFO - Text 2: 格隆汇8月6日｜据Digitimes，英特尔证实，其位于美国俄勒冈州的制造工厂正在导入第二台高数值孔径极紫外(High-NA EUV)光刻机。
 2024-08-16 15:20:40,788 - INFO - ------
+2024-08-16 16:59:35,512 - DEBUG - Building prefix dict from the default dictionary ...
+2024-08-16 16:59:35,512 - DEBUG - Loading model from cache C:\Users\lsj13\AppData\Local\Temp\jieba.cache
+2024-08-16 16:59:36,105 - DEBUG - Loading model cost 0.594 seconds.
+2024-08-16 16:59:36,105 - DEBUG - Prefix dict has been built successfully.
