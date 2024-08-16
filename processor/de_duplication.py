@@ -79,10 +79,21 @@ def split_simhash(simhash_value, parts=4):
     part_length = len(simhash_value) // parts
     return [simhash_value[i * part_length:(i + 1) * part_length] for i in range(parts)]
 
-def find_similar_pairs(articles, column_name, threshold, method='tfidf'):
+def find_similar_pairs(articles, column_name, threshold, method='tfidf', sub_string = False):
     ids = [article['id'] for article in articles]
     
     similar_pairs = []
+    
+    if sub_string:
+        for i in range(len(ids)):
+            for j in range(i + 1, len(ids)):
+                if articles[i][column_name] in articles[j][column_name]:
+                    similar_pairs.append({
+                        'id1': ids[i],
+                        'id2': ids[j],
+                        'text1': articles[i][column_name],
+                        'text2': articles[j][column_name]
+                    })
     
     if method == 'tfidf':
         texts = [chinese_tokenizer(article[column_name]) for article in articles]

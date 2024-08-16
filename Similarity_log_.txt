@@ -7662,3 +7662,7 @@
 2024-08-16 16:59:35,512 - DEBUG - Loading model from cache C:\Users\lsj13\AppData\Local\Temp\jieba.cache
 2024-08-16 16:59:36,105 - DEBUG - Loading model cost 0.594 seconds.
 2024-08-16 16:59:36,105 - DEBUG - Prefix dict has been built successfully.
+2024-08-16 17:11:47,288 - DEBUG - Building prefix dict from the default dictionary ...
+2024-08-16 17:11:47,289 - DEBUG - Loading model from cache C:\Users\lsj13\AppData\Local\Temp\jieba.cache
+2024-08-16 17:11:47,880 - DEBUG - Loading model cost 0.593 seconds.
+2024-08-16 17:11:47,881 - DEBUG - Prefix dict has been built successfully.
