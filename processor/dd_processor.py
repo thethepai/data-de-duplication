@@ -1,11 +1,6 @@
 import time
 import logging
-import jieba
-import re
-import hashlib
-
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+from dd_algorithm import TfidfSimilarity, SimhashSimilarity
 
 THRESHOLD = 0.7
 # tfidf or simhash
