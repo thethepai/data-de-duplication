@@ -105,7 +105,7 @@ def dd_similarity(connection, column_name):
     deleted_count = 0
     
     logging.basicConfig(
-        filename=f'Similarity_log_.txt',
+        filename=f'{start_time}_log_.txt',
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s',
         encoding='utf-8'
