@@ -7,6 +7,10 @@ import hashlib
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+THRESHOLD = 0.7
+# tfidf or simhash
+# METHOD = 'simhash'
+METHOD = 'tfidf'
 
 def dd_similarity(connection, column_name):
     start_time = time.time()
@@ -26,8 +30,15 @@ def dd_similarity(connection, column_name):
             select_query = f"SELECT id, {column_name} FROM articles_info"
             cursor.execute(select_query)
             articles = cursor.fetchall()
+            
+            if METHOD == 'tfidf':
+                strategy = TfidfSimilarity()
+            elif METHOD == 'simhash':
+                strategy = SimhashSimilarity()
+            else:
+                raise ValueError("Unknown method")
         
-            similar_pairs = find_similar_pairs(articles, column_name, THRESHOLD, method = METHOD)
+            similar_pairs = strategy.find_similar_pairs(articles, column_name, THRESHOLD)
             
             logging.info(f"Found {len(similar_pairs)} similar records.")
             
