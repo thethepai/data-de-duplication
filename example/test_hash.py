@@ -7,7 +7,6 @@ def chinese_tokenizer(tokens):
     tokens = [re.sub(r'[^\w\s]', '', token) for token in tokens]
     
     return tokens
-    
 
 def simhash(text):
     # 分词并去除标点符号

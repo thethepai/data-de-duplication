@@ -11,8 +11,6 @@ def main():
         db_utils.alter_column_type(connection, "articles_info", "id", "INT", set_primary_key=True)
         db_utils.show_table_structure(connection, "articles_info")
         
-        # db_utils.create_simhash_table(connection, "hash_fingerprints")
-        
         de_duplication.dd_similarity(connection, "title")
         
         db_utils.export_mysql_to_excel("./data/articles_info.xlsx", "articles_info", connection)
