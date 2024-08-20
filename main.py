@@ -1,7 +1,7 @@
 import os
 
 from processor import db_utils
-from processor import de_duplication
+from processor import dd_broute
 
 def main():
     connection = db_utils.create_connection("localhost", "root", "123456", "test_db")
@@ -11,7 +11,7 @@ def main():
         db_utils.alter_column_type(connection, "articles_info", "id", "INT", set_primary_key=True)
         db_utils.show_table_structure(connection, "articles_info")
         
-        de_duplication.dd_similarity(connection, "title")
+        dd_broute.dd_similarity(connection, "title")
         
         db_utils.export_mysql_to_excel("./data/articles_info.xlsx", "articles_info", connection)
         

@@ -10,12 +10,10 @@ from sklearn.metrics.pairwise import cosine_similarity
 THRESHOLD = 0.7
 # tfidf or simhash
 # METHOD = 'simhash'
-METHOD = 'simhash_64'
-# METHOD = 'tfidf'
+METHOD = 'tfidf'
 stopwords = {'的', '了', '和', '是', '在', '就', '不', '有', '也', '都', '上', '你', '我'}
     
 def chinese_tokenizer(tokens, caller=None):
-    
     tokens = jieba.lcut(tokens)
     tokens = [re.sub(r'[^\w\s]', '', token) for token in tokens]
     # tokens = [token for token in tokens if token not in stopwords]
@@ -46,40 +44,10 @@ def simhash_128(text):
     
     return fingerprint
 
-import hashlib
-
-def simhash_64(text):
-    words = chinese_tokenizer(text, caller='simhash')
-    hash_bits = 64
-    v = [0] * hash_bits
-    
-    for word in words:
-        hash_value = int(hashlib.md5(word.encode('utf-8')).hexdigest(), 16)
-        for i in range(hash_bits):
-            bitmask = 1 << i
-            if hash_value & bitmask:
-                v[i] += 1
-            else:
-                v[i] -= 1
-    
-    fingerprint = 0
-    for i in range(hash_bits):
-        if v[i] >= 0:
-            fingerprint |= 1 << i
-    
-    return fingerprint
-
 def hamming_distance_similarity(simhash1, simhash2):
     hamming_distance = bin(simhash1 ^ simhash2).count('1')
     similarity = 1 - hamming_distance / 128
     return similarity
-
-def split_simhash(simhash_value, parts=4):
-    """Split the simhash value into the specified number of parts."""
-    binary_simhash = bin(simhash_value)[2:].zfill(64)
-    
-    part_length = len(binary_simhash) // parts
-    return [binary_simhash[i * part_length:(i + 1) * part_length] for i in range(parts)]
 
 def find_similar_pairs(articles, column_name, threshold, method='tfidf', sub_string = True):
     ids = [article['id'] for article in articles]
@@ -128,24 +96,6 @@ def find_similar_pairs(articles, column_name, threshold, method='tfidf', sub_str
                         'text1': articles[i][column_name],
                         'text2': articles[j][column_name]
                     })
-    elif method == 'simhash_64':
-        simhash_values = [simhash_64(article[column_name]) for article in articles]
-        parts_dict = [{} for _ in range(4)]
-        
-        for i, simhash_value in enumerate(simhash_values):
-            parts = split_simhash(simhash_value)
-            for part_index, part in enumerate(parts):
-                if part in parts_dict[part_index]:
-                    for j in parts_dict[part_index][part]:
-                        similar_pairs.append({
-                            'id1': ids[i],
-                            'id2': ids[j],
-                            'text1': articles[i][column_name],
-                            'text2': articles[j][column_name]
-                        })
-                    parts_dict[part_index][part].append(i)
-                else:
-                    parts_dict[part_index][part] = [i]
     
     return similar_pairs
 
