@@ -1,6 +1,6 @@
 import time
 import logging
-from dd_algorithm import TfidfSimilarity, SimhashSimilarity
+from .dd_algorithm import TfidfSimilarity, SimhashSimilarity
 
 THRESHOLD = 0.7
 # tfidf or simhash
@@ -18,46 +18,48 @@ def dd_similarity(connection, column_name):
         format='%(asctime)s - %(levelname)s - %(message)s',
         encoding='utf-8'
     )
+    print("processing...")
 
-    try:
-        with connection.cursor(dictionary=True) as cursor:
-            
-            select_query = f"SELECT id, {column_name} FROM articles_info"
-            cursor.execute(select_query)
-            articles = cursor.fetchall()
-            
-            if METHOD == 'tfidf':
-                strategy = TfidfSimilarity()
-            elif METHOD == 'simhash':
-                strategy = SimhashSimilarity()
-            else:
-                raise ValueError("Unknown method")
+    # try:
+    with connection.cursor(dictionary=True) as cursor:
         
-            similar_pairs = strategy.find_similar_pairs(articles, column_name, THRESHOLD)
-            
-            logging.info(f"Found {len(similar_pairs)} similar records.")
-            
-            record = 1
-            for pair in similar_pairs:
-                logging.info(f"pair NO.{record}")
-                logging.info(f"Similarity: {pair['id1']} and {pair['id2']}")
-                logging.info(f"Text 1: {pair['text1']}")
-                logging.info(f"Text 2: {pair['text2']}")
-                logging.info("------")
-                record += 1
-            
-            # delete similar records
-            for pair in similar_pairs:
-                delete_query = f"DELETE FROM articles_info WHERE id = {pair['id2']}"
-                cursor.execute(delete_query)
-                deleted_count += cursor.rowcount
-            
-            deletion_time = time.time() - start_time
-            
-        connection.commit()
-    except Exception as e:
-        print(f"Error: {e}")
-        connection.rollback()
+        select_query = f"SELECT id, {column_name} FROM articles_info"
+        cursor.execute(select_query)
+        articles = cursor.fetchall()
+        
+        if METHOD == 'tfidf':
+            strategy = TfidfSimilarity()
+        elif METHOD == 'simhash':
+            strategy = SimhashSimilarity()
+        else:
+            raise ValueError("Unknown method")
+        print(f"Using {METHOD} method.")
+    
+        similar_pairs = strategy.find_similar_pairs(articles, column_name, THRESHOLD)
+        
+        logging.info(f"Found {len(similar_pairs)} similar records.")
+        
+        record = 1
+        for pair in similar_pairs:
+            logging.info(f"pair NO.{record}")
+            logging.info(f"Similarity: {pair['id1']} and {pair['id2']}")
+            logging.info(f"Text 1: {pair['text1']}")
+            logging.info(f"Text 2: {pair['text2']}")
+            logging.info("------")
+            record += 1
+        
+        # delete similar records
+        for pair in similar_pairs:
+            delete_query = f"DELETE FROM articles_info WHERE id = {pair['id2']}"
+            cursor.execute(delete_query)
+            deleted_count += cursor.rowcount
+        
+        deletion_time = time.time() - start_time
+        
+    connection.commit()
+    # except Exception as e:
+    #     print(f"Error: {e}")
+    #     connection.rollback()
     
     end_time = time.time()
     total_time = end_time - start_time
