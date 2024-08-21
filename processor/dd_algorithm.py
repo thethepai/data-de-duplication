@@ -1,5 +1,3 @@
-import time
-import logging
 import jieba
 import re
 import hashlib
