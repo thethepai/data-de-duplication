@@ -1,10 +1,10 @@
 import time
 import logging
-from .dd_algorithm import TfidfSimilarity, SimhashSimilarity
+from .dd_algorithm import TfidfSimilarity, SimhashSimilarity, MinHashSimilarity
 
 THRESHOLD = 0.7
 # METHOD = 'simhash'
-METHOD = 'tfidf'
+METHOD = 'minhash'
 
 def dd_similarity(connection, column_name):
     start_time = time.time()
@@ -30,6 +30,8 @@ def dd_similarity(connection, column_name):
             strategy = TfidfSimilarity()
         elif METHOD == 'simhash':
             strategy = SimhashSimilarity()
+        elif METHOD == 'minhash':
+            strategy = MinHashSimilarity()
         else:
             raise ValueError("Unknown method")
         print(f"Using {METHOD} method.")

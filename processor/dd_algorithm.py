@@ -3,6 +3,7 @@ import re
 import hashlib
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from datasketch import MinHash, MinHashLSH
 
 from .dd_strategy import SimilarityStrategy
 
@@ -126,3 +127,47 @@ class SimhashSimilarity(SimilarityStrategy):
         
         return similar_pairs
     
+class MinHashSimilarity(SimilarityStrategy):
+    def find_similar_pairs(self, articles, column_name, threshold, sub_string = True):
+        ids = [article['id'] for article in articles]
+        
+        similar_pairs = []
+        
+        # TODO: repeate
+        if sub_string:
+            for i in range(len(ids)):
+                for j in range(i + 1, len(ids)):
+                    if articles[i][column_name] in articles[j][column_name]:
+                        similar_pairs.append({
+                            'id1': ids[i],
+                            'id2': ids[j],
+                            'text1': articles[i][column_name],
+                            'text2': articles[j][column_name]
+                        })
+            print(f"Found {len(similar_pairs)} similar records by substring.")
+            
+        # minhash
+        texts = [TokenizeTools.chinese_tokenizer(article[column_name]) for article in articles]
+        
+        lsh = MinHashLSH(threshold=threshold)
+        minhashes = {}
+        
+        for i, tokens in enumerate(texts):
+            minhash = MinHash()
+            for token in tokens:
+                minhash.update(token.encode('utf8'))
+            lsh.insert(ids[i], minhash)
+            minhashes[ids[i]] = minhash
+
+        for i in range(len(ids)):
+            result = lsh.query(minhashes[ids[i]])
+            for j in result:
+                if ids[i] != j:
+                    similar_pairs.append({
+                        'id1': ids[i],
+                        'id2': j,
+                        'text1': articles[i][column_name],
+                        'text2': next(article[column_name] for article in articles if article['id'] == j)
+                    })
+            
+        return similar_pairs
