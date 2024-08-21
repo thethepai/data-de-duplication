@@ -18,7 +18,7 @@ class TokenizeTools:
         if caller == 'simhash':
             return tokens
         else:
-            return ''.join(tokens)
+            return ' '.join(tokens)
 
 class Simhash:
     @staticmethod
@@ -79,8 +79,8 @@ class TfidfSimilarity(SimilarityStrategy):
         for i in range(len(ids)):
             for j in range(i + 1, len(ids)):
                 sim_val = cosine_sim_matrix[i, j]
+                # print(f"similarity between {ids[i]} and {ids[j]} is {sim_val}")
                 if sim_val > threshold:
-                    print(f"similarity between {ids[i]} and {ids[j]} is {sim_val}")
                     similar_pairs.append({
                         'id1': ids[i],
                         'id2': ids[j],
