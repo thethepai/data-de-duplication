@@ -3,7 +3,6 @@ import logging
 from .dd_algorithm import TfidfSimilarity, SimhashSimilarity
 
 THRESHOLD = 0.7
-# tfidf or simhash
 # METHOD = 'simhash'
 METHOD = 'tfidf'
 

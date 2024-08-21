@@ -75,9 +75,12 @@ class TfidfSimilarity(SimilarityStrategy):
         
         cosine_sim_matrix = cosine_similarity(tfidf_matrix) 
         
+        print("your threshold is: ", threshold)
         for i in range(len(ids)):
             for j in range(i + 1, len(ids)):
-                if cosine_sim_matrix[i, j] > threshold:
+                sim_val = cosine_sim_matrix[i, j]
+                if sim_val > threshold:
+                    print(f"similarity between {ids[i]} and {ids[j]} is {sim_val}")
                     similar_pairs.append({
                         'id1': ids[i],
                         'id2': ids[j],
@@ -108,9 +111,12 @@ class SimhashSimilarity(SimilarityStrategy):
         
         simhash_values = [Simhash.simhash_128(article[column_name]) for article in articles]
         
+        print("your threshold is: ", threshold)
         for i in range(len(ids)):
             for j in range(i + 1, len(ids)):
-                if Simhash.hamming_distance_similarity(simhash_values[i], simhash_values[j]) > threshold:
+                sim_val = Simhash.hamming_distance_similarity(simhash_values[i], simhash_values[j])
+                if sim_val > threshold:
+                    # print(f"similarity between {ids[i]} and {ids[j]} is {sim_val}")
                     similar_pairs.append({
                         'id1': ids[i],
                         'id2': ids[j],
