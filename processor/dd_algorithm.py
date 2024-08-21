@@ -149,9 +149,10 @@ class MinHashSimilarity(SimilarityStrategy):
         # minhash
         texts = [TokenizeTools.chinese_tokenizer(article[column_name]) for article in articles]
         
-        lsh = MinHashLSH(threshold=threshold)
+        lsh = MinHashLSH(threshold = threshold)
         minhashes = {}
         
+        # TODO: O(n)
         for i, tokens in enumerate(texts):
             minhash = MinHash()
             for token in tokens:
