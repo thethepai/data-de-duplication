@@ -1,20 +1,36 @@
 import os
-
+import configparser
 from processor.db_utils import DatabaseUtils
 from processor.dd_processor import DdProcessor
 
 def main():
-    connection = DatabaseUtils.create_connection("localhost", "root", "123456", "test_db")
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    
+    db_config = config['database']
+    file_config = config['files']
+    processor_config = config['processor']
+    
+    connection = DatabaseUtils.create_connection(
+        db_config['host'], 
+        db_config['user'], 
+        db_config['password'], 
+        db_config['database']
+    )
+    
     if connection:
         DatabaseUtils.drop_table_if_exists(connection, "articles_info")
-        DatabaseUtils.load_excel_to_mysql("./data/data.xlsx", "articles_info", connection)
+        DatabaseUtils.load_excel_to_mysql(file_config['input_excel'], "articles_info", connection)
         DatabaseUtils.alter_column_type(connection, "articles_info", "id", "INT", set_primary_key=True)
         DatabaseUtils.show_table_structure(connection, "articles_info")
         
-        processor = DdProcessor(threshold=0.7, method='minhash')
+        processor = DdProcessor(
+            threshold=float(processor_config['threshold']), 
+            method=processor_config['method']
+        )
         processor.dd_similarity(connection, "title")
         
-        DatabaseUtils.export_mysql_to_excel("./data/result.xlsx", "articles_info", connection)
+        DatabaseUtils.export_mysql_to_excel(file_config['output_excel'], "articles_info", connection)
         
         connection.close()
         print("Connection closed.")
@@ -24,4 +40,3 @@ if __name__ == "__main__":
     os.chdir(script_dir)
     print(script_dir)
     main()
-    
