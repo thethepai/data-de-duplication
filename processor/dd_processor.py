@@ -13,8 +13,10 @@ class DdProcessor:
         deletion_time = None
         deleted_count = 0
         
+        
+        
         logging.basicConfig(
-            filename=f'{start_time}_log_.txt',
+            filename=f'./logs/{start_time}_log_.txt',
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(message)s',
             encoding='utf-8'
@@ -57,8 +59,6 @@ class DdProcessor:
                     cursor.execute(delete_query)
                     deleted_count += cursor.rowcount
                 
-                deletion_time = time.time() - start_time
-                
             connection.commit()
         except Exception as e:
             print(f"Error: {e}")
@@ -67,6 +67,5 @@ class DdProcessor:
         end_time = time.time()
         total_time = end_time - start_time
         
-        print(f"Deletion time: {deletion_time} seconds")
         print(f"Total records deleted: {deleted_count}")
         print(f"Total time taken: {total_time} seconds")

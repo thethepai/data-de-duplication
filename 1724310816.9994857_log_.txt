@@ -1,4 +1,0 @@
-2024-08-22 15:13:54,581 - DEBUG - Building prefix dict from the default dictionary ...
-2024-08-22 15:13:54,581 - DEBUG - Loading model from cache C:\Users\lsj13\AppData\Local\Temp\jieba.cache
-2024-08-22 15:13:55,152 - DEBUG - Loading model cost 0.572 seconds.
-2024-08-22 15:13:55,152 - DEBUG - Prefix dict has been built successfully.

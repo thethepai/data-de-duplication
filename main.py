@@ -11,7 +11,7 @@ def main():
         DatabaseUtils.alter_column_type(connection, "articles_info", "id", "INT", set_primary_key=True)
         DatabaseUtils.show_table_structure(connection, "articles_info")
         
-        processor = DdProcessor(threshold=0.7, method='tfidf')
+        processor = DdProcessor(threshold=0.7, method='minhash')
         processor.dd_similarity(connection, "title")
         
         DatabaseUtils.export_mysql_to_excel("./data/result.xlsx", "articles_info", connection)
