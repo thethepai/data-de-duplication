@@ -1,19 +1,19 @@
 import os
 
-from processor import db_utils
+from processor.db_utils import DatabaseUtils
 from processor import dd_processor
 
 def main():
-    connection = db_utils.create_connection("localhost", "root", "123456", "test_db")
+    connection = DatabaseUtils.create_connection("localhost", "root", "123456", "test_db")
     if connection:
-        db_utils.drop_table_if_exists(connection, "articles_info")
-        db_utils.load_excel_to_mysql("./data/data.xlsx", "articles_info", connection)
-        db_utils.alter_column_type(connection, "articles_info", "id", "INT", set_primary_key=True)
-        db_utils.show_table_structure(connection, "articles_info")
+        DatabaseUtils.drop_table_if_exists(connection, "articles_info")
+        DatabaseUtils.load_excel_to_mysql("./data/data.xlsx", "articles_info", connection)
+        DatabaseUtils.alter_column_type(connection, "articles_info", "id", "INT", set_primary_key=True)
+        DatabaseUtils.show_table_structure(connection, "articles_info")
         
         dd_processor.dd_similarity(connection, "title")
         
-        db_utils.export_mysql_to_excel("./data/result.xlsx", "articles_info", connection)
+        DatabaseUtils.export_mysql_to_excel("./data/result.xlsx", "articles_info", connection)
         
         connection.close()
         print("Connection closed.")

@@ -121,8 +121,8 @@ class SimhashSimilarity(SimilarityStrategy):
                     similar_pairs.append({
                         'id1': ids[i],
                         'id2': ids[j],
-                        'text1': articles[i][column_name],
-                        'text2': articles[j][column_name]
+                        # 'text1': articles[i][column_name],
+                        # 'text2': articles[j][column_name]
                     })
         
         return similar_pairs
@@ -141,8 +141,8 @@ class MinHashSimilarity(SimilarityStrategy):
                         similar_pairs.append({
                             'id1': ids[i],
                             'id2': ids[j],
-                            'text1': articles[i][column_name],
-                            'text2': articles[j][column_name]
+                            # 'text1': articles[i][column_name],
+                            # 'text2': articles[j][column_name]
                         })
             print(f"Found {len(similar_pairs)} similar records by substring.")
             
@@ -167,8 +167,8 @@ class MinHashSimilarity(SimilarityStrategy):
                     similar_pairs.append({
                         'id1': ids[i],
                         'id2': j,
-                        'text1': articles[i][column_name],
-                        'text2': next(article[column_name] for article in articles if article['id'] == j)
+                        # 'text1': articles[i][column_name],
+                        # 'text2': next(article[column_name] for article in articles if article['id'] == j)
                     })
             
         return similar_pairs
