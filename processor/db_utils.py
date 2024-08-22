@@ -154,7 +154,7 @@ class DatabaseUtils:
             cursor.execute(describe_query)
             columns = cursor.fetchall()
             
-            fmt = "=== {:30} ==="
+            fmt = "=== {:45} ==="
             print("------")
             print(f"Structure of table '{table_name}':")
             for column in columns:

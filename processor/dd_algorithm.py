@@ -6,17 +6,18 @@ from sklearn.metrics.pairwise import cosine_similarity
 from datasketch import MinHash, MinHashLSH
 
 from .dd_strategy import SimilarityStrategy
+import time
 
 stopwords = {'的', '了', '和', '是', '在', '就', '不', '有', '也', '都', '上', '你', '我'}
 
 class TokenizeTools:
     @staticmethod
-    def chinese_tokenizer(tokens, caller=None):
+    def chinese_tokenizer(tokens, type=None):
         tokens = jieba.lcut(tokens)
         tokens = [re.sub(r'[^\w\s]', '', token) for token in tokens]
         # tokens = [token for token in tokens if token not in self.stopwords]
         
-        if caller == 'simhash':
+        if type == 'list':
             return tokens
         else:
             return ' '.join(tokens)
@@ -24,7 +25,7 @@ class TokenizeTools:
 class Simhash:
     @staticmethod
     def simhash_128(text):
-        words = TokenizeTools.chinese_tokenizer(text, caller='simhash')
+        words = TokenizeTools.chinese_tokenizer(text, type='list')
         hash_bits = 128
         v = [0] * hash_bits
         
@@ -147,11 +148,12 @@ class MinHashSimilarity(SimilarityStrategy):
             print(f"Found {len(similar_pairs)} similar records by substring.")
             
         # minhash
-        texts = [TokenizeTools.chinese_tokenizer(article[column_name]) for article in articles]
+        texts = [TokenizeTools.chinese_tokenizer(article[column_name], type='list') for article in articles]
         
         lsh = MinHashLSH(num_perm=128, threshold = threshold)
         minhashes = {}
         
+        start_time = time.time()
         # TODO: O(n)
         for i, tokens in enumerate(texts):
             minhash = MinHash(num_perm=128)
@@ -159,7 +161,9 @@ class MinHashSimilarity(SimilarityStrategy):
                 minhash.update(token.encode('utf8'))
             lsh.insert(ids[i], minhash)
             minhashes[ids[i]] = minhash
+        print(f"time to hash: {time.time() - start_time}")
 
+        start_time = time.time()
         for i in range(len(ids)):
             result = lsh.query(minhashes[ids[i]])
             for j in result:
@@ -170,5 +174,6 @@ class MinHashSimilarity(SimilarityStrategy):
                         # 'text1': articles[i][column_name],
                         # 'text2': next(article[column_name] for article in articles if article['id'] == j)
                     })
-            
+        print(f"time to query: {time.time() - start_time}")  
+        
         return similar_pairs
