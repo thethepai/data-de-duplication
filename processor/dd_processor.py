@@ -10,7 +10,6 @@ class DdProcessor:
 
     def dd_similarity(self, connection, column_name):
         start_time = time.time()
-        deletion_time = None
         deleted_count = 0
         
         
