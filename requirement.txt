@@ -1,0 +1,5 @@
+jieba
+scikit-learn
+datasketch
+pandas
+mysql-connector-python
