@@ -11,6 +11,7 @@ def main():
     file_config = config['files']
     processor_config = config['processor']
     
+    # create connection
     connection = DatabaseUtils.create_connection(
         db_config['host'], 
         db_config['user'], 
@@ -19,18 +20,21 @@ def main():
     )
     
     if connection:
-        DatabaseUtils.drop_table_if_exists(connection, "articles_info")
+        # load excel and database
+        DatabaseUtils.drop_table_if_exists(connection, db_config['tablename'])
         DatabaseUtils.load_excel_to_mysql(file_config['input_excel'], "articles_info", connection)
-        DatabaseUtils.alter_column_type(connection, "articles_info", "id", "INT", set_primary_key=True)
-        DatabaseUtils.show_table_structure(connection, "articles_info")
+        DatabaseUtils.alter_column_type(connection, db_config['tablename'], "id", "INT", set_primary_key=True)
+        DatabaseUtils.show_table_structure(connection, db_config['tablename'])
         
+        # process data
         processor = DdProcessor(
-            threshold=float(processor_config['threshold']), 
+            threshold = float(processor_config['threshold']), 
             method=processor_config['method']
         )
-        processor.dd_similarity(connection, "title")
+        processor.dd_similarity(connection, processor_config['process_column'])
         
-        DatabaseUtils.export_mysql_to_excel(file_config['output_excel'], "articles_info", connection)
+        # export to excel
+        DatabaseUtils.export_mysql_to_excel(file_config['output_excel'], db_config['tablename'], connection)
         
         connection.close()
         print("Connection closed.")
