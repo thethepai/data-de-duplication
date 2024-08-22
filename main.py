@@ -1,7 +1,7 @@
 import os
 
 from processor.db_utils import DatabaseUtils
-from processor import dd_processor
+from processor.dd_processor import DdProcessor
 
 def main():
     connection = DatabaseUtils.create_connection("localhost", "root", "123456", "test_db")
@@ -11,7 +11,8 @@ def main():
         DatabaseUtils.alter_column_type(connection, "articles_info", "id", "INT", set_primary_key=True)
         DatabaseUtils.show_table_structure(connection, "articles_info")
         
-        dd_processor.dd_similarity(connection, "title")
+        processor = DdProcessor(threshold=0.7, method='tfidf')
+        processor.dd_similarity(connection, "title")
         
         DatabaseUtils.export_mysql_to_excel("./data/result.xlsx", "articles_info", connection)
         

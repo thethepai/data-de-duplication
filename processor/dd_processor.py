@@ -1,9 +1,10 @@
 import time
 import logging
+from typing import Literal
 from .dd_algorithm import TfidfSimilarity, SimhashSimilarity, MinHashSimilarity
 
 class DdProcessor:
-    def __init__(self, threshold=0.7, method='minhash'):
+    def __init__(self, threshold: float = 0.7, method: Literal['tfidf', 'simhash', 'minhash'] = 'minhash'):
         self.THRESHOLD = threshold
         self.METHOD = method
 

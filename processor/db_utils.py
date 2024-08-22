@@ -25,8 +25,10 @@ class DatabaseUtils:
                 passwd=user_password,
                 database=db_name
             )
+            print("------")
             print("Connection to MySQL DB successful")
         except Error as e:
+            print("------")
             print(f"The error '{e}' occurred")
         
         return connection
@@ -58,8 +60,11 @@ class DatabaseUtils:
         try:
             cursor.execute(create_table_query)
             connection.commit()
+            print("------")
             print(f"Table '{table_name}' created successfully with {n} parts.")
         except Error as e:
+            connection.rollback()
+            print("------")
             print(f"The error '{e}' occurred while creating the table '{table_name}'")
         finally:
             cursor.close()
@@ -86,18 +91,25 @@ class DatabaseUtils:
             {', '.join([f'{col} TEXT' for col in df.columns])}
         );
         """
-        cursor.execute(create_table_query)
-        
-        for _, row in df.iterrows():
-            insert_query = f"""
-            INSERT INTO {table_name} ({', '.join(df.columns)}) 
-            VALUES ({', '.join(['%s'] * len(row))})
-            """
-            cursor.execute(insert_query, tuple(row))
-        
-        connection.commit()
-        cursor.close()
-        print(f"Data from {file_path} has been loaded into {table_name} table.")
+        try:
+            cursor.execute(create_table_query)
+            
+            for _, row in df.iterrows():
+                insert_query = f"""
+                INSERT INTO {table_name} ({', '.join(df.columns)}) 
+                VALUES ({', '.join(['%s'] * len(row))})
+                """
+                cursor.execute(insert_query, tuple(row))
+            
+            connection.commit()
+            print("------")
+            print(f"Data from {file_path} has been loaded into {table_name} table.")
+        except Error as e:
+            connection.rollback()
+            print("------")
+            print(f"The error '{e}' occurred while loading into table '{table_name}'")
+        finally:
+            cursor.close()
     
     @staticmethod
     def export_mysql_to_excel(file_path, table_name, connection):
@@ -112,11 +124,16 @@ class DatabaseUtils:
         Returns:
         None
         """
-        query = f"SELECT * FROM {table_name}"
-        df = pd.read_sql(query, connection)
-        
-        df.to_excel(file_path, index=False)
-        print(f"Data from {table_name} table has been exported to {file_path}")
+        try:
+            query = f"SELECT * FROM {table_name}"
+            df = pd.read_sql(query, connection)
+            
+            df.to_excel(file_path, index=False)
+            print("------")
+            print(f"Data from {table_name} table has been exported to {file_path}")
+        except Error as e:
+            print("------")
+            print(f"The error '{e}' occurred while exporting data from table '{table_name}'")
         
     @staticmethod
     def show_table_structure(connection, table_name):
@@ -132,12 +149,21 @@ class DatabaseUtils:
         """
         cursor = connection.cursor()
         describe_query = f"DESCRIBE {table_name};"
-        cursor.execute(describe_query)
-        columns = cursor.fetchall()
         
-        print(f"Structure of table '{table_name}':")
-        for column in columns:
-            print(f"Column: {column[0]}, Type: {column[1]}")
+        try:
+            cursor.execute(describe_query)
+            columns = cursor.fetchall()
+            
+            fmt = "=== {:30} ==="
+            print("------")
+            print(f"Structure of table '{table_name}':")
+            for column in columns:
+                print(fmt.format(f"Column: {column[0]}, Type: {column[1]}"))
+        except Error as e:
+            print("------")
+            print(f"The error '{e}' occurred while showing the structure of table '{table_name}'")
+        finally:
+            cursor.close()
     
     @staticmethod       
     def alter_column_type(connection, table_name, column_name, new_type, set_primary_key=False):
@@ -159,6 +185,7 @@ class DatabaseUtils:
         try:
             cursor.execute(alter_query)
             connection.commit()
+            print("------")
             print(f"Column '{column_name}' in table '{table_name}' has been modified to type '{new_type}'.")
 
             if set_primary_key:
@@ -167,7 +194,9 @@ class DatabaseUtils:
                 connection.commit()
                 print(f"Column '{column_name}' in table '{table_name}' has been set as the primary key.")
         except Exception as e:
-            print(f"An error occurred: {e}")
+            connection.rollback()
+            print("------")
+            print(f"An error occurred while altering column's type: {e}")
         finally:
             cursor.close()
             
@@ -192,11 +221,14 @@ class DatabaseUtils:
                 drop_query = f"DROP TABLE {table_name};"
                 cursor.execute(drop_query)
                 connection.commit()
+                print("------")
                 print("drop_table_if_exists: true")
                 print(f"Table '{table_name}' has been dropped.")
             else:
                 print(f"Table '{table_name}' does not exist.")
         except Exception as e:
-            print(f"An error occurred: {e}")
+            connection.rollback()
+            print("------")
+            print(f"An error occurred when dropping table: {e}")
         finally:
             cursor.close()
