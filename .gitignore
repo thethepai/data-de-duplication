@@ -1,1 +1,6 @@
 /logs/
+
+/data/*.xls
+/data/*.xlsx
+/data/*.xlsm
+/data/*.xlsb
