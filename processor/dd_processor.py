@@ -4,15 +4,14 @@ from typing import Literal
 from .dd_algorithm import TfidfSimilarity, SimhashSimilarity, MinHashSimilarity
 
 class DdProcessor:
-    def __init__(self, threshold: float = 0.7, method: Literal['tfidf', 'simhash', 'minhash'] = 'minhash'):
+    def __init__(self, threshold: float = 0.7, method: Literal['tfidf', 'simhash', 'minhash'] = 'minhash', id = 'id'):
         self.THRESHOLD = threshold
         self.METHOD = method
+        self.ID = id
 
     def dd_similarity(self, connection, column_name):
         start_time = time.time()
         deleted_count = 0
-        
-        
         
         logging.basicConfig(
             filename=f'./logs/{start_time}_log_.txt',
@@ -25,7 +24,7 @@ class DdProcessor:
         try:
             with connection.cursor(dictionary=True) as cursor:
                 
-                select_query = f"SELECT id, {column_name} FROM articles_info"
+                select_query = f"SELECT {self.ID}, {column_name} FROM articles_info"
                 cursor.execute(select_query)
                 articles = cursor.fetchall()
                 
@@ -39,7 +38,7 @@ class DdProcessor:
                     raise ValueError("Unknown method")
                 print(f"Using {self.METHOD} method.")
             
-                similar_pairs = strategy.find_similar_pairs(articles, column_name, self.THRESHOLD)
+                similar_pairs = strategy.find_similar_pairs(articles, column_name, self.THRESHOLD, self.ID)
                 
                 logging.info(f"Found {len(similar_pairs)} similar records.")
                 
@@ -54,7 +53,7 @@ class DdProcessor:
                 
                 # delete similar records
                 for pair in similar_pairs:
-                    delete_query = f"DELETE FROM articles_info WHERE id = {pair['id2']}"
+                    delete_query = f"DELETE FROM articles_info WHERE {self.ID} = {pair['id2']}"
                     cursor.execute(delete_query)
                     deleted_count += cursor.rowcount
                 

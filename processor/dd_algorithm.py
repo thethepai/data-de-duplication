@@ -10,7 +10,11 @@ import time
 
 stopwords = {'的', '了', '和', '是', '在', '就', '不', '有', '也', '都', '上', '你', '我'}
 
-class TokenizeTools:
+class ProcessTools:
+    @staticmethod
+    def remove_stopwords(tokens):
+        return [token for token in tokens if token not in stopwords]
+    
     @staticmethod
     def chinese_tokenizer(tokens, type=None):
         tokens = jieba.lcut(tokens)
@@ -21,11 +25,28 @@ class TokenizeTools:
             return tokens
         else:
             return ' '.join(tokens)
+    
+    @staticmethod
+    def remove_sub_string(articles, column_name, ids, similar_pairs):
+        for i in range(len(ids)):
+                for j in range(i + 1, len(ids)):
+                    if articles[i][column_name] in articles[j][column_name]:
+                        similar_pairs.append({
+                            'id1': ids[i],
+                            'id2': ids[j],
+                            # 'text1': articles[i][column_name],
+                            # 'text2': articles[j][column_name]
+                        })
+        print(f"Found {len(similar_pairs)} similar records by substring.")
+    
+    @staticmethod
+    def remove_similar_pairs():
+        pass
 
 class Simhash:
     @staticmethod
     def simhash_128(text):
-        words = TokenizeTools.chinese_tokenizer(text, type='list')
+        words = ProcessTools.chinese_tokenizer(text, type='list')
         hash_bits = 128
         v = [0] * hash_bits
         
@@ -52,25 +73,16 @@ class Simhash:
         return similarity
 
 class TfidfSimilarity(SimilarityStrategy):
-    def find_similar_pairs(self, articles, column_name, threshold, sub_string = True):
-        ids = [article['id'] for article in articles]
+    def find_similar_pairs(self, articles, column_name, threshold, id, sub_string = True):
+        ids = [article[f'{id}'] for article in articles]
         
         similar_pairs = []
         
         # TODO: repeate
         if sub_string:
-            for i in range(len(ids)):
-                for j in range(i + 1, len(ids)):
-                    if articles[i][column_name] in articles[j][column_name]:
-                        similar_pairs.append({
-                            'id1': ids[i],
-                            'id2': ids[j],
-                            'text1': articles[i][column_name],
-                            'text2': articles[j][column_name]
-                        })
-            print(f"Found {len(similar_pairs)} similar records by substring.")
+            ProcessTools.remove_sub_string(articles, column_name, ids, similar_pairs)
             
-        texts = [TokenizeTools.chinese_tokenizer(article[column_name]) for article in articles]
+        texts = [ProcessTools.chinese_tokenizer(article[column_name]) for article in articles]
         # calculate TF-IDF matrix
         vectorizer = TfidfVectorizer()
         tfidf_matrix = vectorizer.fit_transform(texts)
@@ -81,35 +93,25 @@ class TfidfSimilarity(SimilarityStrategy):
         for i in range(len(ids)):
             for j in range(i + 1, len(ids)):
                 sim_val = cosine_sim_matrix[i, j]
-                # print(f"similarity between {ids[i]} and {ids[j]} is {sim_val}")
                 if sim_val > threshold:
                     similar_pairs.append({
                         'id1': ids[i],
                         'id2': ids[j],
-                        'text1': articles[i][column_name],
-                        'text2': articles[j][column_name]
+                        # 'text1': articles[i][column_name],
+                        # 'text2': articles[j][column_name]
                     })
         
         return similar_pairs
 
 class SimhashSimilarity(SimilarityStrategy):
-    def find_similar_pairs(self, articles, column_name, threshold, sub_string = True):
-        ids = [article['id'] for article in articles]
+    def find_similar_pairs(self, articles, column_name, threshold, id, sub_string = True):
+        ids = [article[f'{id}'] for article in articles]
         
         similar_pairs = []
         
         # TODO: repeate
         if sub_string:
-            for i in range(len(ids)):
-                for j in range(i + 1, len(ids)):
-                    if articles[i][column_name] in articles[j][column_name]:
-                        similar_pairs.append({
-                            'id1': ids[i],
-                            'id2': ids[j],
-                            'text1': articles[i][column_name],
-                            'text2': articles[j][column_name]
-                        })
-            print(f"Found {len(similar_pairs)} similar records by substring.")
+            ProcessTools.remove_sub_string(articles, column_name, ids, similar_pairs)
         
         simhash_values = [Simhash.simhash_128(article[column_name]) for article in articles]
         
@@ -118,7 +120,6 @@ class SimhashSimilarity(SimilarityStrategy):
             for j in range(i + 1, len(ids)):
                 sim_val = Simhash.hamming_distance_similarity(simhash_values[i], simhash_values[j])
                 if sim_val > threshold:
-                    # print(f"similarity between {ids[i]} and {ids[j]} is {sim_val}")
                     similar_pairs.append({
                         'id1': ids[i],
                         'id2': ids[j],
@@ -129,26 +130,17 @@ class SimhashSimilarity(SimilarityStrategy):
         return similar_pairs
     
 class MinHashSimilarity(SimilarityStrategy):
-    def find_similar_pairs(self, articles, column_name, threshold, sub_string = True):
-        ids = [article['id'] for article in articles]
+    def find_similar_pairs(self, articles, column_name, threshold, id, sub_string = True):
+        ids = [article[f'{id}'] for article in articles]
         
         similar_pairs = []
         
         # TODO: repeate
         if sub_string:
-            for i in range(len(ids)):
-                for j in range(i + 1, len(ids)):
-                    if articles[i][column_name] in articles[j][column_name]:
-                        similar_pairs.append({
-                            'id1': ids[i],
-                            'id2': ids[j],
-                            # 'text1': articles[i][column_name],
-                            # 'text2': articles[j][column_name]
-                        })
-            print(f"Found {len(similar_pairs)} similar records by substring.")
+            ProcessTools.remove_sub_string(articles, column_name, ids, similar_pairs)
             
         # minhash
-        texts = [TokenizeTools.chinese_tokenizer(article[column_name], type='list') for article in articles]
+        texts = [ProcessTools.chinese_tokenizer(article[column_name], type='list') for article in articles]
         
         lsh = MinHashLSH(num_perm=128, threshold = threshold)
         minhashes = {}
