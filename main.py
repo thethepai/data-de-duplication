@@ -1,6 +1,6 @@
 import os
 import configparser
-from processor.db_utils import DatabaseUtils
+from processor.db_mysql_utils import DatabaseUtils
 from processor.dd_processor import DdProcessor
 
 def main():
