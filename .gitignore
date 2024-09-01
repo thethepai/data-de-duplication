@@ -1,7 +1,9 @@
-/logs/
+/logs/*.txt
 /.venv/
 
 /data/*.xls
 /data/*.xlsx
 /data/*.xlsm
 /data/*.xlsb
+
+__pycache__/
